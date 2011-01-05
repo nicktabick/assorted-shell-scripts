@@ -79,8 +79,8 @@ if [ $SILENT != "SILENT" ]; then
   esac
   echo
 
-  echo Creating temporary directory...
 fi
+echo Creating temporary directory...
 mkdir -p ~/.wp-temp$$
 if [ $? -ne 0 ]; then
   clean_err "There was an error creating the temporary work directory..."
