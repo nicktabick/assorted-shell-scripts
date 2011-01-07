@@ -33,7 +33,8 @@ print_usage() {
   echo 1>&2 "the cache created by --prep to patch the target application."
   echo 1>&2
   echo 1>&2 "In all cases, the application is assumed to be in the /Applications"
-  echo 1>&2 "directory.  The .app extension must be specified."
+  echo 1>&2 "directory.  The .app extension must be specified.  If the name includes"
+  echo 1>&2 "a space, wrap the name in quotes: \"App Name.app\""
   exit 127
 }
 
@@ -47,7 +48,7 @@ if [ "$1" == "--help" ]; then
   print_usage
 fi
 
-## Check whether we're running in prepmode or patchmode
+## Check whether we're running in prep mode or patch mode
 if [ "$1" == "--prep" ]; then
   ## Prepmode - borrowing credentials from an application downloaded legitimately
   ## from the App Store.  We store them in the user's home directory on the off
@@ -78,12 +79,17 @@ if [ "$1" == "--prep" ]; then
   exit 0
 fi
 
-## If execution gets to here, we're in patchmode
+## If execution gets to here, we're in patch mode
 
-## Clear out the existing credentials
-rm -rf /Applications/$1/Contents/_CodeSignature /Applications/$1/Contents/_MASReceipt 
+## Back up the existing credentials
+mv /Applications/$1/Contents/_CodeSignature /Applications/$1/Contents/_CodeSignature.backup
 if [ $? -ne 0 ]; then
-  clean_err "The existing credentials could not be removed from the application package."
+  clean_err "The existing _CodeSignature could not be removed (renamed) from the application package."
+fi
+
+mv /Applications/$1/Contents/_MASReceipt /Applications/$1/Contents/_MASReceipt.backup
+if [ $? -ne 0 ]; then
+  clean_err "The existing _MASReceipt could not be removed (renamed) from the application package."
 fi
 
 ## Copy in the new credentials from our cache
