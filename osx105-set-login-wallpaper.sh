@@ -17,13 +17,10 @@ print_usage() {
   echo 1>&2 "You may use --restore in place of a filename to replace the default"
   echo 1>&2 "wallpaper."
   echo 1>&2
+  echo 1>&2 "This script requires root access to replace a system library file."
+  echo 1>&2
   exit 127
 }
-
-# Check for root
-if [ $EUID -ne 0 ]; then
-  clean_err "This script won't work unless you run it as root!"
-fi
 
 ## Check for parameter
 if [ $# -lt 1 ]; then
@@ -31,6 +28,11 @@ if [ $# -lt 1 ]; then
 fi
 if [ "$1" == "--help" ]; then
   print_usage
+fi
+
+# Check for root
+if [ $EUID -ne 0 ]; then
+  clean_err "This script won't work unless you run it as root!"
 fi
 
 OWD=$(pwd)
@@ -48,7 +50,7 @@ else
 fi
 
 # Time to do some replacement
-echo Replacing wallpaper...
+echo "Replacing wallpaper..."
 
 # Build up the location for the wallpaper
 if [ "$1" == "--restore" ]; then
