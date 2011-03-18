@@ -23,11 +23,14 @@ clean_err() {
 }
 
 print_usage() {
-  echo 1>&2 "Usage: $0 [--prep] <target.app>"
+  echo 1>&2 "Usage: $0 [--prep|--restore] <target.app>"
   echo 1>&2
   echo 1>&2 "--prep  Backs up valid App Store credentials to the user's home directory"
   echo 1>&2 "        so that they may be used to patch other applications."
   echo 1>&2
+  echo 1>&2 "--restore Restores any App Store credentials that might be stored in an"
+  echo 1>&2 "          application bundle as a result of using this script. (Undo)"
+  echo 1>&2 
   echo 1>&2 "If the --prep flag is not specified, this script assumes that it has"
   echo 1>&2 "already been run against a legitimately-downloaded application and uses"
   echo 1>&2 "the cache created by --prep to patch the target application."
@@ -48,9 +51,9 @@ if [ "$1" == "--help" ]; then
   print_usage
 fi
 
-## Check whether we're running in prep mode or patch mode
+## Check whether we're running in prep mode, restore mode, or patch mode
 if [ "$1" == "--prep" ]; then
-  ## Prepmode - borrowing credentials from an application downloaded legitimately
+  ## Prep mode - borrowing credentials from an application downloaded legitimately
   ## from the App Store.  We store them in the user's home directory on the off
   ## chance that the user decides to remove the free application we're sourcing
   ## these from at a later date.
@@ -76,6 +79,33 @@ if [ "$1" == "--prep" ]; then
   ## Done with prep!
   echo Credentials cache created successfully in ~/.appstorecache.
   echo "(You may delete $2 in the future.)"
+  exit 0
+fi
+if [ "$1" == "--restore" ]; then
+  ## Restore mode - restores the receipt that was backed up and then replaced
+  ## inside an application bundle.
+  
+  ## Before clearing the existing receipts, let's save the user from
+  ## themselves and check for the existence of a backup receipt.
+  if [ ! -e "/Applications/$2/Contents/_CodeSignature.backup" ]; then
+    clean_err "There doesn't appear to be a backup in this application package.  Restoring is impossible."
+  fi
+  
+  rm -r /Applications/$2/Contents/_CodeSignature /Applications/$2/Contents/_MASReceipt
+  if [ $? -ne 0 ]; then
+    clean_err "There was an error removing the replacement receipt from the application package."
+  fi
+
+  mv /Applications/$2/Contents/_CodeSignature.backup /Applications/$2/Contents/_CodeSignature
+  if [ $? -ne 0 ]; then
+    clean_err "The backup _CodeSignature could not be restored."
+  fi
+
+  mv /Applications/$2/Contents/_MASReceipt.backup /Applications/$2/Contents/_MASReceipt
+  if [ $? -ne 0 ]; then
+    clean_err "The backup _MASReceipt could not be restored."
+  fi
+  
   exit 0
 fi
 
