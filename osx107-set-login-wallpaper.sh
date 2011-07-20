@@ -54,7 +54,7 @@ if [ -e "NSTexturedFullScreenBackgroundColor.png.bak" ]; then
   echo "There appears to be an existing backup. Skipping..."
 else
   echo "Creating a backup of the original wallpaper..."
-  cp NSTexturedFullScreenBackgroundColor.png NSTexturedFullScreenBackgroundColor.png
+  cp NSTexturedFullScreenBackgroundColor.png NSTexturedFullScreenBackgroundColor.png.bak
   if [ $? -ne 0 ]; then
     clean_err "There was an error creating the backup copy of NSTexturedFullScreenBackgroundColor.png."
   fi
@@ -86,7 +86,7 @@ if [ "$1" == "--restore" ]; then
   fi
 else
   # Kill two birds with one stone and resize it as we copy the replacement over
-  sips -s format png -z $SCRHEIGHT $SCRWIDTH $WPLOC --out NSTexturedFullScreenBackgroundColor.png &> /dev/null
+  sips -s format png -z $SCRHEIGHT $SCRWIDTH "$WPLOC" --out NSTexturedFullScreenBackgroundColor.png &> /dev/null
   if [ $? -ne 0 ]; then
     clean_err "There was an error converting and replacing NSTexturedFullScreenBackgroundColor.png with your image."
     exit 2
